@@ -69,6 +69,9 @@ final class HomeMode {
         "com.hisense.tv.dlna",                                                        // DLNA server, announces the TV on the LAN
         "net.vidaatv.android.tv", "net.vidaatv.hisense.android.tv",                   // VIDAA TV and its promo channels (ads)
         "com.vidaa.oemtabcontentprovider",                                            // the launcher's promo tab
+        // Hisense, newer firmware (Google TV, Android 12 tested): the same pieces under "com.vt" names.
+        "com.vt.tv.evservice",                                                        // ACR: watches what's on screen
+        "com.vt.tv.dlna",                                                             // DLNA server
         // Multilaser (Expressluck / CVTE board)
         "tv.anoki.acr.anokiacroptin",                                                 // Anoki ACR: watches what's on screen
         "fusion.android.tv.demo", "com.expressluck.tvhelpmanual",                     // store demo (also Xiaomi projectors), manual
@@ -147,7 +150,21 @@ final class HomeMode {
         "com.hisense.tv.hitvinput", "com.hisense.fte", "com.hisense.uifac", "com.hisense.tv.protector",
         "com.hisense.tv.customerlauncher", "com.hisense.tv.ota", "com.hisense.remoteupgrade", "com.hisense.tv.videocolor",
         "com.hisense.tv.smartsense", "com.hisense.tv.smartservice", "com.hisense.alexa",
-        "com.mediatek.AirplayAPK", "com.mediatek.partner.airplay"));
+        "com.mediatek.AirplayAPK", "com.mediatek.partner.airplay",
+        // Hisense, newer firmware ("com.vt"): inputs, tuner and TV center, setup, factory menu, EULA, updates, picture
+        // and sound middleware, DRM, calibration, AirPlay, the TV's own settings and launcher glue, and the system-uid
+        // pieces (log reporters, Alexa, store mode, AI sense, screen sharing) left alone on purpose
+        "com.vt.tv.input", "com.vt.tv.tvcenter", "com.vt.source.tuner", "com.vt.source.external", "com.vt.tvservice",
+        "com.vt.fte", "com.vt.factory", "com.vt.eula", "com.vt.tv.ota", "com.vt.remoteupgrade",
+        "com.vt.avmiddleware", "com.vt.edv.drmp", "com.vt.roomcalibration", "com.vt.tv.aipq", "com.vt.tv.commonui",
+        "com.vt.tv.customerlauncher", "com.vt.tv.protector", "com.vt.tv.airplaykeycheck", "com.vt.tv.calmanconnector",
+        "com.vt.tv.mediacenter", "com.vt.tv.smartsense", "com.vt.tv.smartsense.ui", "com.vt.tv.smartservice",
+        "com.vt.alexa", "com.vt.storemode", "com.vt.hishow", "com.vt.tv.ai_sense", "com.vt.tv.aiotsystemservice",
+        "com.vt.tv.singlelisten", "com.vt.tv.mobiledeviceconnectiontips", "com.vt.tv.interactive",
+        "com.mediatek.airplaydaemon", "com.mediatek.android.tv.globalkeyoverlay", "com.mediatek.aowtis",
+        "com.mediatek.dtv.tvinput.framework.server", "com.mediatek.dtv.tvinput.isdbtuner",
+        "com.mediatek.partner.airplay_sys", "com.mediatek.support.webview", "com.mstar.netflixobserver",
+        "com.netflix.tokenmanager"));
 
     /** One switch at a time (jobs can overlap: a boot check and a button press). */
     private static final Object RUN = new Object();

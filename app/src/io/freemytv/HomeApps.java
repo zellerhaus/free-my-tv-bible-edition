@@ -104,6 +104,7 @@ final class HomeApps {
             "net.vidaatv.android.tv",               // Hisense: VIDAA TV (ad-supported channels)
             "net.vidaatv.hisense.android.tv",       // Hisense: VIDAA channels
             "com.hisense.tv.protector",             // Hisense: cleaner / turbo mode
+            "com.vt.tv.protector",                  // Hisense (newer firmware): the same cleaner
             "com.tcl.t_solo",                       // TCL: T-Solo
             "com.tcl.waterfall.overseas",           // TCL Channel
             "com.tcl.dashboard",                    // TCL Home

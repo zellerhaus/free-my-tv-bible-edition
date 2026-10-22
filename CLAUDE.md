@@ -198,7 +198,7 @@ HDMI (Chromecast with Google TV, Google TV Streamer, onn 4K, NVIDIA Shield). Set
   `tabKind`; never count to 3 there. The web app (`web/`) doesn't have it yet.
 - Hisense (Google TV, Android 11, MediaTek): `evservice` is the ACR; `smartsense` and `smartservice` are log reporters
   and `alexa` the assistant, all three on the system uid (1000), so they stay on (a system-uid package can hold the
-  saved Wi-Fi). The VIDAA apps are ad channels.
+  saved Wi-Fi). The VIDAA apps are ad channels. Newer Hisense firmware (Android 12) names the same pieces `com.vt.*` (`com.vt.tv.evservice` is the ACR); both sets are listed. Its first setup saves the Wi-Fi under `setupwraith`, so the switch asks to forget and re-add the network first.
 - Colors: `Palette` (picked in Home Settings, `Prefs.palette`) gives `HomeView` its inks and its gradient backgrounds
   (`pal.ink`, `pal.dim`, `pal.bright`…, through `tone(day, night)`); the photos keep their own almost-white/almost-black
   look, so a palette shows where there is no photo: the Verse tab with its calm background (`Prefs.verseBackground`),
