@@ -13,6 +13,19 @@ An edition of [Free My TV](https://github.com/simbasjungles/free-my-tv) by [@sim
 - **Color palettes.** Graphite, Parchment, Desert, Midnight and Sage, by day and by night, with a calm background behind the verse.
 - **Hisense support.** Hisense's screen-content recognition and promo channels turned off in Free My TV mode.
 
+<img src=".github/bible-edition/verse-tab-night.webp" width="880" alt="The Verse tab at night, Parchment palette: Psalms 24:1 on the left, its context on the right, the NIV copyright line below">
+
+<table>
+<tr>
+<td><img src=".github/bible-edition/verse-tab-day.webp" alt="The Verse tab by day, Parchment palette"></td>
+<td><img src=".github/bible-edition/verse-tab-desert.webp" alt="The Verse tab at night, Desert palette"></td>
+</tr>
+<tr>
+<td><img src=".github/bible-edition/verse-card.webp" alt="The bottom drawer with the Verse of the Day card between the weather and the prices"></td>
+<td><img src=".github/bible-edition/screensaver.webp" alt="The screensaver: the verse at the bottom right, under the clock"></td>
+</tr>
+</table>
+
 Everything below is the original README, with the new settings added to its table.
 
 ---
