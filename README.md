@@ -2,9 +2,20 @@
 
 <img src="docs/assets/icon-512.png" width="96" alt="">
 
-# Free My TV
+# Free My TV - Bible Edition
 
-**A fast, ad-free home screen for Google TV, LG and Samsung TVs.**
+**A fast, ad-free home screen for Google TV that opens on the Verse of the Day.**
+
+An edition of [Free My TV](https://github.com/simbasjungles/free-my-tv) by [@simbasjungles](https://github.com/simbasjungles) (MIT), with:
+
+- **The Verse of the Day, first.** A Verse tab before Explore: the verse on the left, two sentences of historical context on the right, the Bible version's copyright line below. Or a card in the bottom drawer. The screensaver shows it too.
+- **A feed you host.** The TV reads one small JSON document a day from your own site (`votd_url`), which talks to the [YouVersion Platform](https://platform.youversion.com/) and keeps the keys. Context by [Psalmlog](https://psalmlog.com).
+- **Color palettes.** Graphite, Parchment, Desert, Midnight and Sage, by day and by night, with a calm background behind the verse.
+- **Hisense support.** Hisense's screen-content recognition and promo channels turned off in Free My TV mode.
+
+Everything below is the original README, with the new settings added to its table.
+
+---
 
 Trending picks from your own apps, the weather at a glance, and a look that follows the sunset.<br>
 Open source. Built with Claude Code. One button to undo.
