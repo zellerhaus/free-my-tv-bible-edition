@@ -137,6 +137,11 @@ final class Ui {
         return Math.max(0, Math.min(1, v));
     }
 
+    /** The app's name as shown on screen: with a Verse of the Day feed it is the Bible Edition. */
+    static String appName() {
+        return Verse.configured() ? "Free My TV - Bible Edition" : "Free My TV";
+    }
+
     static String tr(String pt, String english) {
         return de ? German.text(english) : ru ? Russian.text(english) : es ? Spanish.text(english) : en ? english : pt;
     }

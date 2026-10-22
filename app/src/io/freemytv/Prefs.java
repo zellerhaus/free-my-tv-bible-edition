@@ -90,6 +90,28 @@ final class Prefs {
 
     static void setTheme(String v) { put("theme", v); }
 
+    /** Where the Verse of the Day goes: "off", "card" (bottom drawer) or "tab" (first tab). */
+    static String verseMode() {
+        String v = sp().getString("verse", Config.VERSE).trim().toLowerCase(Locale.ROOT);
+        return v.equals("tab") || v.equals("card") ? v : "off";
+    }
+
+    static void setVerseMode(String v) { put("verse", v); }
+
+    /** The verse tab's background: "calm" (the palette's gradient) or "photo" (the picks' photo, like the other tabs). */
+    static String verseBackground() {
+        return sp().getString("verseBackground", Config.VERSE_BACKGROUND).trim().toLowerCase(Locale.ROOT).equals("photo") ? "photo" : "calm";
+    }
+
+    static void setVerseBackground(String v) { put("verseBackground", v); }
+
+    /** The color palette's key (Palette.ALL); unknown keys fall back to the first. */
+    static String palette() {
+        return Palette.of(sp().getString("palette", Config.PALETTE).trim().toLowerCase(Locale.ROOT)).key;
+    }
+
+    static void setPalette(String v) { put("palette", v); }
+
     // MARK: - City
 
     static String city() { return sp().getString("city", Config.CITY).trim(); }

@@ -138,6 +138,28 @@ final class German {
             case "Netflix, YouTube and Prime Video: the TV itself controls those buttons.": return "Netflix, YouTube und Prime Video: Diese Tasten steuert der Fernseher selbst.";
             case "The other buttons: the TV itself controls them.": return "Die anderen Tasten steuert der Fernseher selbst.";
             case "TCL remote buttons: on this TV they work as always.": return "TCL-Fernbedienung: Die Tasten funktionieren hier wie immer.";
+            // The Verse of the Day
+            case "Verse": return "Vers";
+            case "Verse of the Day": return "Vers des Tages";
+            case "CONTEXT": return "KONTEXT";
+            case "Context: ": return "Kontext: ";
+            case "No verse right now.": return "Gerade kein Vers.";
+            case "Verse of the Day. No verse right now.": return "Vers des Tages. Gerade kein Vers.";
+            case "Card": return "Karte";
+            case "Tab": return "Tab";
+            case "Verse of the Day from the YouVersion Platform · Context by Psalmlog": return "Vers des Tages von der YouVersion Platform · Kontext von Psalmlog";
+            case "VERSE OF THE DAY": return "VERS DES TAGES";
+            case "On · tab": return "An · Tab";
+            case "On · card": return "An · Karte";
+            case "Color palette": return "Farbpalette";
+            case "Verse background": return "Hintergrund des Verses";
+            case "Photo": return "Foto";
+            case "Calm": return "Ruhig";
+            case "Graphite": return "Graphit";
+            case "Parchment": return "Pergament";
+            case "Desert": return "Wüste";
+            case "Midnight": return "Mitternacht";
+            case "Sage": return "Salbei";
             default:
                 if (english.startsWith("Free My TV is on: new home screen and screensaver, ")) {
                     return "Free My TV ist an: neuer Startbildschirm und Bildschirmschoner, "

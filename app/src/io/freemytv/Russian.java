@@ -181,6 +181,28 @@ final class Russian {
                 return "Сети Wi-Fi сохранены приложением первоначальной настройки телевизора. Его отключение удалит эти сети. "
                         + "В разделе «Настройки → Сеть и Интернет» забудьте сеть и подключитесь заново, затем повторите попытку. "
                         + "Недоступные сети там не отображаются: Claude Code может удалить их с компьютера.";
+            // The Verse of the Day
+            case "Verse": return "Стих";
+            case "Verse of the Day": return "Стих дня";
+            case "CONTEXT": return "КОНТЕКСТ";
+            case "Context: ": return "Контекст: ";
+            case "No verse right now.": return "Сейчас стиха нет.";
+            case "Verse of the Day. No verse right now.": return "Стих дня. Сейчас стиха нет.";
+            case "Card": return "Карточка";
+            case "Tab": return "Вкладка";
+            case "Verse of the Day from the YouVersion Platform · Context by Psalmlog": return "Стих дня от YouVersion Platform · Контекст от Psalmlog";
+            case "VERSE OF THE DAY": return "СТИХ ДНЯ";
+            case "On · tab": return "Включено · вкладка";
+            case "On · card": return "Включено · карточка";
+            case "Color palette": return "Цветовая палитра";
+            case "Verse background": return "Фон стиха";
+            case "Photo": return "Фото";
+            case "Calm": return "Спокойный";
+            case "Graphite": return "Графит";
+            case "Parchment": return "Пергамент";
+            case "Desert": return "Пустыня";
+            case "Midnight": return "Полночь";
+            case "Sage": return "Шалфей";
             default:
                 // Notices are saved in the language in use when they were generated.
                 String[] prefixes = {"Couldn't check Free My TV: ", "Couldn't turn on Free My TV: ",

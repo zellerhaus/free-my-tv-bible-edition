@@ -63,6 +63,12 @@ final class HomeMode {
         "com.tcl.messagebox", "com.tcl.usercenter",                                   // TCL messages and account
         "com.tcl.exhibit", "com.tcl.esticker", "com.tcl.hotelmenu",                   // store demo, hotel menu
         "com.tcl.repairguide", "com.tcl.ocean.instructions", "com.tcl.logkit",        // repair guide, manual, logs
+        // Hisense (Google TV, Android 11 tested). Not its log reporters (smartsense, smartservice) nor Alexa: they
+        // share the system's uid, and turning off a system-uid package can take the TV's saved Wi-Fi with it.
+        "com.hisense.evservice",                                                      // ACR: watches what's on screen
+        "com.hisense.tv.dlna",                                                        // DLNA server, announces the TV on the LAN
+        "net.vidaatv.android.tv", "net.vidaatv.hisense.android.tv",                   // VIDAA TV and its promo channels (ads)
+        "com.vidaa.oemtabcontentprovider",                                            // the launcher's promo tab
         // Multilaser (Expressluck / CVTE board)
         "tv.anoki.acr.anokiacroptin",                                                 // Anoki ACR: watches what's on screen
         "fusion.android.tv.demo", "com.expressluck.tvhelpmanual",                     // store demo (also Xiaomi projectors), manual
@@ -135,7 +141,13 @@ final class HomeMode {
         "com.fengmi.projector.imaging", "com.fengmi.platform", "com.fengmi.Autopair", "com.fengmi.fmsettings",
         "com.fengmi.testsuite", "android.autoinstalls.config.fomovie",
         "uk.co.freeview.tifbridge",
-        "uk.co.freeview.mdsclient", "uk.co.freeview.fvpconfigauth"));
+        "uk.co.freeview.mdsclient", "uk.co.freeview.fvpconfigauth",
+        // Hisense (MediaTek): TV input and tuner, setup, factory menu and remote pairing, the TV's own settings and
+        // launcher glue, updates, picture, AirPlay, and the system-uid pieces (log reporters, Alexa) left alone on purpose
+        "com.hisense.tv.hitvinput", "com.hisense.fte", "com.hisense.uifac", "com.hisense.tv.protector",
+        "com.hisense.tv.customerlauncher", "com.hisense.tv.ota", "com.hisense.remoteupgrade", "com.hisense.tv.videocolor",
+        "com.hisense.tv.smartsense", "com.hisense.tv.smartservice", "com.hisense.alexa",
+        "com.mediatek.AirplayAPK", "com.mediatek.partner.airplay"));
 
     /** One switch at a time (jobs can overlap: a boot check and a button press). */
     private static final Object RUN = new Object();

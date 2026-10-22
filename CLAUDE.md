@@ -190,6 +190,20 @@ HDMI (Chromecast with Google TV, Google TV Streamer, onn 4K, NVIDIA Shield). Set
   the key to the TV. Sony ships its own Apple TV build, `com.apple.atve.sony.appletv`.
   Xiaomi projectors made by Formovie (Fengmi; L1, MediaTek, Google TV 14 tested) send the same `KEYCODE_STEM_1` for
   Netflix (`RemoteKeys.STEM_NETFLIX`); their YouTube button goes to MediaTek's `GlobalKeyReceiver` and stays with the system.
+- The Verse of the Day (`Verse`): the TV only reads a JSON feed (`votd_url` in config.properties; `asset:<file>` reads a
+  sample from `app/assets`), once a day and again after midnight; the server that makes it holds the YouVersion key and
+  writes the version's `copyright` line, which the TV shows as plain text wherever the verse is (the license asks for
+  it). `verse` (off, card, tab; changeable on the TV, `Prefs.verseMode`) picks the drawer card or the first tab (two
+  columns: the verse, its context). With the tab on, the top row has 4 tabs: `HomeView.tabCount()`, `tabName`,
+  `tabKind`; never count to 3 there. The web app (`web/`) doesn't have it yet.
+- Hisense (Google TV, Android 11, MediaTek): `evservice` is the ACR; `smartsense` and `smartservice` are log reporters
+  and `alexa` the assistant, all three on the system uid (1000), so they stay on (a system-uid package can hold the
+  saved Wi-Fi). The VIDAA apps are ad channels.
+- Colors: `Palette` (picked in Home Settings, `Prefs.palette`) gives `HomeView` its inks and its gradient backgrounds
+  (`pal.ink`, `pal.dim`, `pal.bright`…, through `tone(day, night)`); the photos keep their own almost-white/almost-black
+  look, so a palette shows where there is no photo: the Verse tab with its calm background (`Prefs.verseBackground`),
+  the drawer, the app without a TMDB key. Home Settings scrolls (`HOME_VISIBLE` rows; `settingRow()` is the row
+  under the focus, never `focus` alone).
 - After any change, `./build.sh` must end with `Built FreeMyTV.apk`.
 - LG and Samsung (`web/`): plain ES5 JavaScript and CSS without variables, grid or backdrop-filter, since older TVs
   (webOS 3 and 4, Tizen 3) run a Chromium from 2015 to 2017; only transform and opacity animate. `web/tv.js` is the

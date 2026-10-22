@@ -39,7 +39,7 @@ import java.util.concurrent.Executors;
  * Dark scrims only where there is text, stronger where the photo is bright. Any key exits (as on Apple TV).
  * Without photos (no TMDB key, or before the first fetch): the big clock over the night aurora.
  */
-final class DreamView extends View implements Choreographer.FrameCallback, HomeData.Listener, Recs.Listener {
+final class DreamView extends View implements Choreographer.FrameCallback, HomeData.Listener, Recs.Listener, Verse.Listener {
     private static final long SHOW_MS = 30_000, FADE_MS = 3_000, FIRST_MS = 1_600;
     private static final float ZOOM = 0.1f;
     /** Photos 10% larger than the screen (the zoom goes up to 1.1 without upscaling). */
@@ -96,6 +96,7 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
     private final Scene scene = new Scene(false);
     private final HomeData data;
     private final Recs recs;
+    private final Verse verse;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private ExecutorService worker = Executors.newSingleThreadExecutor();
     private final Recording content = Recording.create("clock");     // without photos: the clock over the aurora
@@ -124,12 +125,15 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
     private Paint datePaint, clockPaint, weatherPaint, weatherDim, quotePaint, stalePaint;
     private Paint cornerDate, cornerQuote, cornerStale, cornerClock, labelPaint, metaPaint;
     private TextPaint titlePaint;
+    private Paint verseRef;
+    private TextPaint versePaint, verseCopy;
 
     private final Runnable tick = new Runnable() {
         @Override public void run() {
             if (!running) return;
             data.refreshIfStale();
             recs.refreshIfStale();
+            verse.refreshIfStale();
             recs.prefetchAll();
             dirty = true;
             chromeDirty = true;
@@ -141,6 +145,7 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
     DreamView(Context c) {
         super(c);
         data = HomeData.get(c);
+        verse = Verse.get(c);
         recs = Recs.get(c);
         Shaders.dream(scene.palette);
         scene.setMotion(0.4f, 0.32f);
@@ -167,8 +172,10 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
         fallback = recs.showcase().isEmpty();
         data.addListener(this);
         recs.addListener(this);
+        verse.addListener(this);
         data.refreshIfStale();
         recs.refreshIfStale();
+        verse.refreshIfStale();
         recs.prefetchAll();
         prepareNext();
         handler.postDelayed(tick, 60_000);
@@ -185,6 +192,7 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
         handler.removeCallbacks(tick);
         data.removeListener(this);
         recs.removeListener(this);
+        verse.removeListener(this);
         // The photos stay in GPU memory until the garbage collector runs: release them now (after the last frame).
         final java.util.Set<Bitmap> gone = new java.util.HashSet<>();
         for (Slide s : new Slide[] {current, incoming, prepared}) {
@@ -212,6 +220,12 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
 
     @Override public void onRecs() {
         if (running) prepareNext();
+    }
+
+    @Override public void onVerse() {
+        dirty = true;
+        chromeDirty = true;
+        invalidate();
     }
 
     @Override protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
@@ -243,7 +257,13 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
         titlePaint.setLetterSpacing(0.005f);
         metaPaint = Ui.text(Ui.medium, 29 * k, 0xC7FFFFFF);
         metaPaint.setLetterSpacing(0.014f);
-        for (Paint p : new Paint[] {cornerDate, cornerQuote, cornerStale, cornerClock, labelPaint, titlePaint, metaPaint}) {
+        // The verse: bottom right with photos, under the weather without them.
+        verseRef = Ui.text(Ui.semibold, 24 * k, 0xB8FFFFFF);
+        verseRef.setLetterSpacing(0.06f);
+        versePaint = new TextPaint(Ui.text(Ui.medium, 30 * k, 0xEBFFFFFF));
+        verseCopy = new TextPaint(Ui.text(Ui.regular, 17 * k, 0x8CFFFFFF));
+        for (Paint p : new Paint[] {cornerDate, cornerQuote, cornerStale, cornerClock, labelPaint, titlePaint, metaPaint,
+                verseRef, versePaint, verseCopy}) {
             p.setShadowLayer(18 * k, 0, 2 * k, 0x66000000);
         }
         glassFor = "";
@@ -547,6 +567,25 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
             }
             String stale = HomeData.staleness(data.pricesAt, 5 * 60_000L);
             if (!stale.isEmpty() && n > 0) c.drawText(stale, right - total - 24 * k - cornerStale.measureText(stale), base, cornerStale);
+
+            // The verse at the bottom right (the photo's caption has the left), the version's line under it.
+            Verse.Day vd = Verse.on() ? verse.day : null;
+            if (vd != null) {
+                int width = Math.round(760 * k);
+                StaticLayout text = verseLayout(vd.text, versePaint, width, 3, Layout.Alignment.ALIGN_OPPOSITE);
+                StaticLayout copy = verseLayout(vd.copyright, verseCopy, width, 2, Layout.Alignment.ALIGN_OPPOSITE);
+                float textBottom = META_BASE * k - 4 * k, textTop = textBottom - text.getHeight();
+                String ref = vd.bible.isEmpty() ? vd.reference : vd.reference + " · " + vd.bible;
+                c.drawText(ref, right - verseRef.measureText(ref), textTop - 20 * k, verseRef);
+                c.save();
+                c.translate(right - width, textTop);
+                text.draw(c);
+                c.restore();
+                c.save();
+                c.translate(right - width, textBottom + 14 * k);
+                copy.draw(c);
+                c.restore();
+            }
         } finally {
             chrome.endRecording();
         }
@@ -768,6 +807,25 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
             c.drawText(range, x, base, weatherDim);
         }
 
+        // The verse, centered between the weather and the prices.
+        Verse.Day vd = Verse.on() ? verse.day : null;
+        if (vd != null) {
+            int width = Math.round(1100 * k);
+            String ref = vd.bible.isEmpty() ? vd.reference : vd.reference + " · " + vd.bible;
+            float top = clockBase + 150 * k;
+            c.drawText(ref, cx - verseRef.measureText(ref) / 2, top, verseRef);
+            StaticLayout text = verseLayout(vd.text, versePaint, width, 3, Layout.Alignment.ALIGN_CENTER);
+            c.save();
+            c.translate(cx - width / 2f, top + 22 * k);
+            text.draw(c);
+            c.restore();
+            StaticLayout copy = verseLayout(vd.copyright, verseCopy, width, 1, Layout.Alignment.ALIGN_CENTER);
+            c.save();
+            c.translate(cx - width / 2f, top + 22 * k + text.getHeight() + 12 * k);
+            copy.draw(c);
+            c.restore();
+        }
+
         // Prices near the bottom edge: small white logo + value, all four on one line.
         float cap = Ui.cap(quotePaint), spacing = 56 * k, gap = 10 * k;
         int[] coins = HomeData.active();
@@ -787,5 +845,11 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
         }
         String stale = HomeData.staleness(data.pricesAt, 5 * 60_000L);
         if (!stale.isEmpty() && values.length > 0) c.drawText(Ui.tr("cotações de ", "prices from ") + stale, cx, base + 38 * k, stalePaint);
+    }
+
+    private static StaticLayout verseLayout(String text, TextPaint paint, int width, int maxLines, Layout.Alignment align) {
+        return StaticLayout.Builder.obtain(text, 0, text.length(), paint, Math.max(1, width))
+                .setMaxLines(maxLines).setEllipsize(TextUtils.TruncateAt.END).setAlignment(align)
+                .setLineSpacing(0, 1.15f).setIncludePad(false).build();
     }
 }

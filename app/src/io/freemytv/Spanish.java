@@ -130,6 +130,28 @@ final class Spanish {
             case "Netflix, YouTube and Prime Video: the TV itself controls those buttons.": return "Netflix, YouTube y Prime Video: el propio TV controla esos botones.";
             case "The other buttons: the TV itself controls them.": return "Los demás botones: el propio TV los controla.";
             case "TCL remote buttons: on this TV they work as always.": return "Botones del control de TCL: en este TV funcionan como siempre.";
+            // The Verse of the Day
+            case "Verse": return "Versículo";
+            case "Verse of the Day": return "Versículo del día";
+            case "CONTEXT": return "CONTEXTO";
+            case "Context: ": return "Contexto: ";
+            case "No verse right now.": return "No hay versículo ahora.";
+            case "Verse of the Day. No verse right now.": return "Versículo del día. No hay versículo ahora.";
+            case "Card": return "Tarjeta";
+            case "Tab": return "Pestaña";
+            case "Verse of the Day from the YouVersion Platform · Context by Psalmlog": return "Versículo del día de YouVersion Platform · Contexto por Psalmlog";
+            case "VERSE OF THE DAY": return "VERSÍCULO DEL DÍA";
+            case "On · tab": return "Activado · pestaña";
+            case "On · card": return "Activado · tarjeta";
+            case "Color palette": return "Paleta de colores";
+            case "Verse background": return "Fondo del versículo";
+            case "Photo": return "Foto";
+            case "Calm": return "Calmo";
+            case "Graphite": return "Grafito";
+            case "Parchment": return "Pergamino";
+            case "Desert": return "Desierto";
+            case "Midnight": return "Medianoche";
+            case "Sage": return "Salvia";
             default:
                 if (english.startsWith("Free My TV is on: new home screen and screensaver, ")) {
                     return "Free My TV está activo: nueva pantalla de inicio y protector, "

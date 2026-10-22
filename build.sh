@@ -41,6 +41,8 @@ LON="$(number longitude -74.0060)"
 ASSIST=false; [ "$(prop disable_assistant false)" = "true" ] && ASSIST=true
 CRYPTO=false; [ "$(prop show_crypto true)" = "true" ] && CRYPTO=true
 ANIMATION=false; [ "$(prop hide_animation false)" = "true" ] && ANIMATION=true
+PALETTE="$(prop palette graphite)"; VERSE_BG="$(prop verse_background calm)"
+VERSE="$(prop verse off)"; case "$VERSE" in tab|card|off) ;; *) echo "config.properties: verse must be off, card or tab (got \"$VERSE\")" >&2; exit 1 ;; esac
 
 rm -rf out && mkdir -p out/gen/io/freemytv out/classes
 cat > out/gen/io/freemytv/Config.java <<EOF
@@ -62,6 +64,10 @@ final class Config {
     static final boolean DISABLE_ASSISTANT = $ASSIST;
     static final boolean SHOW_CRYPTO = $CRYPTO;
     static final boolean HIDE_ANIMATION = $ANIMATION;
+    static final String VOTD_URL = "$(prop votd_url '')";
+    static final String VERSE = "$VERSE";
+    static final String VERSE_BACKGROUND = "$VERSE_BG";
+    static final String PALETTE = "$PALETTE";
 }
 EOF
 
