@@ -147,8 +147,8 @@
       setClass(list[i], 'focus', st.zone === Z.TOP && st.top === i);
     }
     list = $('buttons').children;
-    for (i = 0; i < list.length; i++) setClass(list[i], 'focus', st.zone === Z.TOP && st.top === 3 + i);
-    setClass($('quotes'), 'hide', st.zone === Z.TOP && st.top >= 3);
+    for (i = 0; i < list.length; i++) setClass(list[i], 'focus', st.zone === Z.TOP && st.top === tabCount() + i);
+    setClass($('quotes'), 'hide', st.zone === Z.TOP && st.top >= tabCount());
     list = $('cards').children;
     for (i = 0; i < list.length; i++) setClass(list[i], 'focus', st.zone === Z.CARDS && st.card === i);
     list = $('tiles').children;
@@ -192,12 +192,22 @@
 
   var TAB_KIND = [null, 'movie', 'tv'];
 
+  // The tabs: Explore, Movies and Shows, with Verse first when it is set to be a tab; the buttons come after them.
+  function tabCount() { return Verse.tab() ? 4 : 3; }
+  function verseTab(i) { return Verse.tab() && i === 0; }
+  function tabKind(i) { return verseTab(i) ? null : TAB_KIND[Verse.tab() ? i - 1 : i]; }
+  function tabNames() {
+    var names = [tr('Explorar', 'Explore', 'Explorar'), tr('Filmes', 'Movies', 'Películas'), tr('Séries', 'Shows', 'Series')];
+    if (Verse.tab()) names.unshift(tr('Versículo', 'Verse', 'Versículo'));
+    return names;
+  }
+
   function renderTop() {
     $('title').textContent = tr('Para você', 'For You', 'Para ti');
     var tabs = $('tabs');
     tabs.innerHTML = '';
-    var names = [tr('Explorar', 'Explore', 'Explorar'), tr('Filmes', 'Movies', 'Películas'), tr('Séries', 'Shows', 'Series')];
-    for (var i = 0; i < 3; i++) {
+    var names = tabNames();
+    for (var i = 0; i < names.length; i++) {
       var t = el('button', 'tab', tabs, names[i]);
       hover(t, Z.TOP, i);
     }
@@ -210,7 +220,7 @@
       r.style.left = (1596 + 88 * b) + 'px';
       sym(defs[b][0], r);
       el('div', 'tip', r, defs[b][1]);
-      hover(r, Z.TOP, 3 + b);
+      hover(r, Z.TOP, tabCount() + b);
     }
   }
 
@@ -227,9 +237,13 @@
   // MARK: - Picks and background
 
   function renderCards() {
-    var list = Data.picks(TAB_KIND[st.tab]);
+    var onVerse = verseTab(st.tab), calm = onVerse && Prefs.verseBackground() !== 'photo';
+    setClass(body, 'verse-tab', onVerse);
+    setClass(body, 'calm', calm);
+    if (onVerse) renderVerse();
+    var list = onVerse ? [] : Data.picks(tabKind(st.tab));
     var holder = $('cards');
-    setClass(body, 'no-picks', !list.length);
+    setClass(body, 'no-picks', !list.length && !onVerse);
     var same = list.length === cards.length;
     for (var i = 0; same && i < list.length; i++) same = list[i].id === cards[i].id && list[i].backdrop === cards[i].backdrop && list[i].meta === cards[i].meta;
     if (same && holder.children.length === list.length) return;
@@ -248,8 +262,73 @@
     }
     st.card = Math.min(st.card, Math.max(0, list.length - 1));
     if (!list.length && st.zone === Z.CARDS) st.zone = Z.SHELF;
-    backdrop(list.length ? Data.image(list[0].backdrop, 'w300') : '');
+    var pool = calm ? [] : onVerse ? Data.picks(null) : list;
+    backdrop(pool.length ? Data.image(pool[0].backdrop, 'w300') : '');
     updateFocus();
+  }
+
+  // MARK: - The verse (the Verse tab, the drawer card, the screensaver)
+
+  var verseShown = '';
+
+  /** The Verse tab: two columns in the cards' place, the verse on the left and its context on the right. */
+  function renderVerse() {
+    var v = $('verse'), d = Verse.day;
+    var key = Verse.fetchedAt + '|' + I18N.lang + '|' + (d ? d.date : '');
+    if (key === verseShown) return;
+    verseShown = key;
+    v.innerHTML = '';
+    if (!d) { el('div', 'ref', v, tr('Sem versículo agora.', 'No verse right now.', 'No hay versículo ahora.')); return; }
+    el('div', 'ref', v, Verse.reference(d));
+    var text = el('div', 'text', v, d.text);
+    // Long verses shrink, as on Android (46 px down to 32).
+    text.style.fontSize = (d.text.length > 300 ? 32 : d.text.length > 220 ? 36 : d.text.length > 150 ? 40 : 46) + 'px';
+    el('div', 'copy', v, d.copyright);
+    el('div', 'credit', v, Verse.credit());
+    if (d.context) {
+      el('div', 'split', v);
+      el('div', 'ctxlabel', v, tr('CONTEXTO', 'CONTEXT', 'CONTEXTO'));
+      el('div', 'ctx', v, d.context);
+    }
+  }
+
+  function renderVerseCard(card) {
+    var d = Verse.day;
+    el('div', 'head', card, tr('Versículo do dia', 'Verse of the Day', 'Versículo del día'));
+    if (!d) { el('div', 'vt', card, tr('Sem versículo agora.', 'No verse right now.', 'No hay versículo ahora.')); return; }
+    el('div', 'side', card, Verse.reference(d));
+    el('div', 'vt', card, d.text);
+    el('div', 'copy', card, d.copyright);
+  }
+
+  // MARK: - Palette: the inks and backgrounds where there is no photo (and a wash over the photos)
+
+  function rgba(hex, a) {
+    var m = /^#?([0-9a-f]{6})$/i.exec(hex || '') || [0, '000000'];
+    var n = parseInt(m[1], 16);
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+
+  function applyPalette() {
+    var p = Palette.of(Prefs.palette());
+    var style = $('palcss');
+    if (!style) { style = document.createElement('style'); style.id = 'palcss'; document.head.appendChild(style); }
+    var grad = function (a, b) { return 'background:-webkit-linear-gradient(top,' + a + ',' + b + ');background:linear-gradient(' + a + ',' + b + ');'; };
+    style.textContent = [
+      '#sky{background:' + p.glassLight + '}', '.night #sky{background:' + p.glassDark + '}',
+      '#sky .day{' + grad(p.lightTop, p.lightBottom) + '}', '#sky .night{' + grad(p.darkTop, p.darkBottom) + '}',
+      '#sky .veil{background:' + rgba(p.lightTop, 0.74) + '}', '.night #sky .veil{background:' + rgba(p.darkTop, 0.78) + '}',
+      '#title,.tab.on,.card .name,#clock,.panel,.key,#verse .text{color:' + p.ink + '}',
+      '.tab,.card .meta,#clock .date,.panel .head,.row-title,#weather .range,#weather .hour .t,#weather .sun,#verse .ref,#verse .ctxlabel,#verse .ctx{color:' + p.dim + '}',
+      '#quotes,.panel .side,#verse .copy,#verse .credit,#versecard .copy{color:' + p.faint + '}',
+      '.night #title,.night .tab.on,.night .card .name,.night #clock,.night .panel,.night .key,.night #verse .text{color:' + p.bright + '}',
+      '.night .tab,.night .card .meta,.night #clock .date,.night .panel .head,.night .row-title,.night #weather .range,.night #weather .hour .t,.night #weather .sun,.night #verse .ref,.night #verse .ctxlabel{color:' + p.dimDark + '}',
+      '.night #verse .ctx{color:' + rgba(p.bright, 0.85) + '}',
+      '.night #quotes,.night .panel .side,.night #verse .copy,.night #verse .credit,.night #versecard .copy{color:' + rgba(p.bright, 0.5) + '}',
+      // The focus pills stay white with dark text, whatever the palette.
+      '.tab.focus,.night .tab.focus,.key.focus,.night .key.focus{color:#1D1D1F}'
+    ].join('\n');
+    setClass(body, 'pal-' + p.key, true);
   }
 
   var bgUrl = null, bgFront = 'bgA';
@@ -355,23 +434,23 @@
     var d = $('drawer');
     var old = d.querySelectorAll('.panel');
     for (var o = 0; o < old.length; o++) d.removeChild(old[o]);
-    var wx = Prefs.weather(), coins = Data.activeCoins(), qt = coins.length > 0;
-    var split = 80 + 1760 * 0.585;
-    if (wx) {
-      var w = el('div', 'panel glass', d);
-      w.id = 'weather';
-      w.style.left = '80px';
-      w.style.width = ((qt ? split - 16 : 1840) - 80) + 'px';
-      renderWeather(w);
+    var wx = Prefs.weather(), coins = Data.activeCoins(), qt = coins.length > 0, vs = Verse.card();
+    // A card that is off gives its room to the others; with all three, the weather shows fewer hours.
+    var boxes = {};
+    if (wx && qt && vs) { boxes.weather = [80, 80 + 1760 * 0.40 - 16]; boxes.verse = [80 + 1760 * 0.40 + 16, 80 + 1760 * 0.70 - 16]; boxes.prices = [80 + 1760 * 0.70 + 16, 1840]; }
+    else if (wx && (qt || vs)) { var split = 80 + 1760 * 0.585; boxes.weather = [80, split - 16]; boxes[qt ? 'prices' : 'verse'] = [split + 16, 1840]; }
+    else if (qt && vs) { boxes.verse = [80, 960 - 16]; boxes.prices = [960 + 16, 1840]; }
+    else { boxes.weather = boxes.prices = boxes.verse = [80, 1840]; }
+    function panel(id) {
+      var e = el('div', 'panel glass', d);
+      e.id = id;
+      e.style.left = boxes[id][0] + 'px';
+      e.style.width = (boxes[id][1] - boxes[id][0]) + 'px';
+      return e;
     }
-    if (qt) {
-      var q = el('div', 'panel glass', d);
-      q.id = 'prices';
-      var left = wx ? split + 16 : 80;
-      q.style.left = left + 'px';
-      q.style.width = (1840 - left) + 'px';
-      renderPrices(q, coins);
-    }
+    if (wx) renderWeather(panel('weather'));
+    if (vs) renderVerseCard(panel('versecard'));
+    if (qt) renderPrices(panel('prices'), coins);
   }
 
   function renderWeather(card) {
@@ -388,8 +467,10 @@
     el('div', 'range', card, I18N.lang === 'ru' ? 'Макс. ' + Data.degrees(w.max) + '   Мин. ' + Data.degrees(w.min) : tr('Máx. ' + Data.degrees(w.max) + '   Mín. ' + Data.degrees(w.min), 'H:' + Data.degrees(w.max) + '   L:' + Data.degrees(w.min),
         'Máx. ' + Data.degrees(w.max) + '   Mín. ' + Data.degrees(w.min)));
     el('div', 'split', card);
-    var hours = el('div', 'hours', card), width = parseFloat(card.style.width) - 30 - 422, hw = width / 6;
-    for (var i = 0; i < w.hours.length && i < 6; i++) {
+    // As many of the next hours as fit (a narrower card, beside the verse, shows 4 instead of 6).
+    var hours = el('div', 'hours', card), width = parseFloat(card.style.width) - 30 - 422;
+    var slots = Math.max(1, Math.min(6, Math.floor(width / 62))), hw = width / slots;
+    for (var i = 0; i < w.hours.length && i < slots; i++) {
       var h = el('div', 'hour', hours), x = w.hours[i];
       h.style.left = (hw * i) + 'px';
       h.style.width = hw + 'px';
@@ -399,7 +480,7 @@
     }
     var sun = el('div', 'sun', card);
     if (w.sunrise) { var a = el('span', '', sun); sym('sunrise', a); a.appendChild(document.createTextNode(tr('Nascer ', 'Sunrise ', 'Amanecer ') + Data.time(w.sunrise))); }
-    if (w.sunset) { var b = el('span', '', sun); sym('sunset', b); b.appendChild(document.createTextNode(tr('Pôr do sol ', 'Sunset ', 'Atardecer ') + Data.time(w.sunset))); }
+    if (w.sunset && width >= 380) { var b = el('span', '', sun); sym('sunset', b); b.appendChild(document.createTextNode(tr('Pôr do sol ', 'Sunset ', 'Atardecer ') + Data.time(w.sunset))); }
   }
 
   function renderPrices(card, coins) {
@@ -477,11 +558,22 @@
         step: function (d) { cycle('temperature', ['auto', 'C', 'F'], unit, d); renderPanels(); }},
       {label: tr('Tema', 'Theme', 'Tema'), value: theme === 'light' ? tr('Claro', 'Light', 'Claro') : theme === 'dark' ? tr('Escuro', 'Dark', 'Oscuro') : auto,
         step: function (d) { cycle('theme', ['auto', 'light', 'dark'], theme, d); checkNight(); }},
+      {label: tr('Paleta de cores', 'Color palette', 'Paleta de colores'), value: Palette.label(Prefs.palette()),
+        step: function (d) { cycle('palette', Palette.keys, Palette.of(Prefs.palette()).key, d); applyPalette(); }},
       {label: tr('Widget do clima', 'Weather widget', 'Widget del clima'), toggle: Prefs.weather(),
         step: function () { Prefs.set('weather', !Prefs.weather()); renderPanels(); }},
       {label: tr('Widget de cotações', 'Quotes widget', 'Widget de cotizaciones'), toggle: Prefs.quotes(),
         step: function () { Prefs.set('quotes', !Prefs.quotes()); Data.settingsChanged(); }}
     ];
+    if (Verse.configured()) {
+      var vm = Verse.mode();
+      rows.push({label: tr('Versículo do dia', 'Verse of the Day', 'Versículo del día'),
+        value: vm === 'tab' ? tr('Aba', 'Tab', 'Pestaña') : vm === 'card' ? tr('Cartão', 'Card', 'Tarjeta') : off,
+        step: function (d) { cycle('verse', ['off', 'card', 'tab'], vm, d); verseChanged(); }});
+      rows.push({label: tr('Fundo do versículo', 'Verse background', 'Fondo del versículo'),
+        value: Prefs.verseBackground() === 'photo' ? tr('Foto', 'Photo', 'Foto') : tr('Calmo', 'Calm', 'Calmo'),
+        step: function () { Prefs.set('verseBackground', Prefs.verseBackground() === 'photo' ? 'calm' : 'photo'); verseChanged(); }});
+    }
     var names = ['Bitcoin', 'Ethereum', 'Solana', tr('Dólar', 'Dollar', 'Dólar')];
     var count = Data.currency === 'BRL' ? 4 : 3;
     for (var i = 0; i < count; i++) {
@@ -493,6 +585,19 @@
     rows.push({label: tr('Prateleira', 'Shelf', 'Estante'), value: '›', step: function (d) { if (d >= 0) openShelfEdit(); }});
     rows.push({label: tr('Ajustes da TV', 'TV Settings', 'Ajustes del TV'), value: '›', step: function (d) { if (d >= 0) tvSettings(); }});
     return rows;
+  }
+
+  /** The verse's setting changed: the tabs are built again and the focus goes back to the shelf. */
+  function verseChanged() {
+    st.tab = 0;
+    if (st.zone === Z.TOP || st.zone === Z.CARDS) st.zone = Z.SHELF;
+    Verse.refresh();
+    renderTop();
+    cards = [];
+    verseShown = '';
+    renderCards();
+    renderPanels();
+    updateFocus();
   }
 
   function cycle(name, values, current, d) {
@@ -624,9 +729,9 @@
   function activate() {
     switch (st.zone) {
       case Z.TOP:
-        if (st.top < 3) return;
-        if (st.top === 3) { var live = liveTV(); if (live) launcher(live.id, tr('TV aberta', 'Live TV', 'TV en vivo'))(); }
-        else if (st.top === 4) { st.zone = Z.SHELF; openDrawer(); st.drawer = 1 < drawerInputs ? 1 : 0; updateFocus(); }
+        if (st.top < tabCount()) return;
+        if (st.top === tabCount()) { var live = liveTV(); if (live) launcher(live.id, tr('TV aberta', 'Live TV', 'TV en vivo'))(); }
+        else if (st.top === tabCount() + 1) { st.zone = Z.SHELF; openDrawer(); st.drawer = 1 < drawerInputs ? 1 : 0; updateFocus(); }
         else openSettings();
         return;
       case Z.CARDS:
@@ -675,10 +780,10 @@
         break;
       case Z.TOP:
         if (dx) {
-          st.top = Math.max(0, Math.min(5, st.top + dx));
-          if (st.top < 3) selectTab(st.top);   // as on Apple TV: focusing a tab selects it
+          st.top = Math.max(0, Math.min(tabCount() + 2, st.top + dx));
+          if (st.top < tabCount()) selectTab(st.top);   // as on Apple TV: focusing a tab selects it
         } else if (dy > 0) {
-          if (cards.length) { st.zone = Z.CARDS; st.card = Math.min(cards.length - 1, st.top < 3 ? 0 : cards.length - 1); }
+          if (cards.length) { st.zone = Z.CARDS; st.card = Math.min(cards.length - 1, st.top < tabCount() ? 0 : cards.length - 1); }
           else st.zone = Z.SHELF;
         }
         break;
@@ -721,7 +826,7 @@
       if (zone !== Z.DRAWER && st.zone === Z.DRAWER && zone !== Z.SHELF) return;
       if (zone === Z.SHELF && st.zone === Z.DRAWER) closeDrawer();
       st.zone = zone;
-      if (zone === Z.TOP) { st.top = index; if (index < 3) selectTab(index); }
+      if (zone === Z.TOP) { st.top = index; if (index < tabCount()) selectTab(index); }
       else if (zone === Z.CARDS) st.card = index;
       else if (zone === Z.SHELF) st.shelf = index;
       else if (zone === Z.DRAWER) st.drawer = index;
@@ -763,6 +868,14 @@
     el('div', 'time', clock);
     el('div', 'date', clock);
     el('div', 'title', clock);
+    var vd = Verse.on() ? Verse.day : null;
+    if (vd) {
+      var vb = el('div', 'verse', s);
+      el('div', 'ref', vb, Verse.reference(vd));
+      var vt = el('div', 'text', vb, vd.text);
+      if (vd.text.length > 190) vt.style.fontSize = '24px';
+      el('div', 'copy', vb, vd.copyright);
+    }
     var front = a;
     function next() {
       if (!saverOn) return;
@@ -827,6 +940,7 @@
   // MARK: - Start
 
   function renderAll() {
+    applyPalette();
     renderTop();
     renderQuotes();
     cards = [];
@@ -867,6 +981,11 @@
     renderPanels();
     checkNight();
   });
+  Verse.onChange(function () {
+    verseShown = '';
+    if (verseTab(st.tab)) renderVerse();
+    if (Verse.card()) renderPanels();
+  });
 
   function reopened() {
     // LG: with handlesRelaunch the app has to come to the front itself, or opening it again while it runs shows nothing.
@@ -886,7 +1005,9 @@
 
   I18N.set(Prefs.language());
   fit();
+  applyPalette();
   renderTop();
+  Verse.refresh();
   loadApps(function () {
     renderAll();
     Data.refresh();
@@ -895,6 +1016,7 @@
     renderClock();
     checkNight();
     Data.refresh();
+    Verse.refresh();
     if (!saverOn && !sheetOpen() && Date.now() - idleAt > SAVER_AFTER) showSaver();
     if (saverOn) tickSaverClock($('saver').querySelector('.clock'));
   }, 30000);

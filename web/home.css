@@ -413,6 +413,34 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .night #prices .up { color: #30D158; background: rgba(48, 209, 88, 0.2); }
 .night #prices .down { color: #FF453A; background: rgba(255, 69, 58, 0.2); }
 
+/* MARK: - The Verse tab (two columns in the cards' place) and the drawer's verse card */
+
+#verse { position: absolute; left: 80px; top: 262px; width: 1760px; height: 560px; display: none; }
+.verse-tab #verse { display: block; }
+.verse-tab #cards { display: none; }
+#verse .ref { position: absolute; left: 0; top: 0; font-size: 28px; font-weight: 600; color: #6E6E73; white-space: nowrap; }
+#verse .text { position: absolute; left: 0; top: 70px; width: 1000px; max-height: 340px; overflow: hidden; font-size: 46px; font-weight: 500; line-height: 1.12; letter-spacing: -0.005em; color: #1D1D1F; }
+#verse .copy { position: absolute; left: 0; top: 440px; width: 1000px; max-height: 48px; overflow: hidden; font-size: 19px; line-height: 1.2; color: #8E8E93; }
+#verse .credit { position: absolute; left: 0; top: 500px; width: 1000px; font-size: 19px; color: #8E8E93; white-space: nowrap; }
+#verse .split { position: absolute; left: 1059px; top: 12px; width: 2px; height: 408px; background: rgba(0, 0, 0, 0.1); }
+#verse .ctxlabel { position: absolute; left: 1120px; top: 2px; font-size: 23px; font-weight: 600; letter-spacing: 0.08em; color: #6E6E73; }
+#verse .ctx { position: absolute; left: 1120px; top: 70px; width: 640px; max-height: 330px; overflow: hidden; font-size: 29px; line-height: 1.25; color: #48484A; }
+.night #verse .ref, .night #verse .ctxlabel { color: rgba(255, 255, 255, 0.7); }
+.night #verse .text { color: #F5F5F7; }
+.night #verse .copy, .night #verse .credit { color: rgba(255, 255, 255, 0.5); }
+.night #verse .ctx { color: rgba(255, 255, 255, 0.85); }
+.night #verse .split { background: rgba(255, 255, 255, 0.14); }
+
+#versecard .vt { position: absolute; left: 34px; right: 34px; top: 82px; max-height: 120px; overflow: hidden; font-size: 25px; font-weight: 500; line-height: 1.14; }
+#versecard .copy { position: absolute; left: 34px; right: 34px; bottom: 16px; max-height: 52px; overflow: hidden; font-size: 15px; line-height: 1.12; color: #8E8E93; }
+.night #versecard .copy { color: rgba(255, 255, 255, 0.5); }
+
+/* The verse on the screensaver: bottom right, opposite the clock. */
+#saver .verse { position: absolute; right: 80px; bottom: 60px; width: 760px; text-align: right; color: #FFF; text-shadow: 0 2px 18px rgba(0, 0, 0, 0.5); }
+#saver .verse .ref { font-size: 24px; font-weight: 600; letter-spacing: 0.06em; color: rgba(255, 255, 255, 0.72); margin-bottom: 12px; }
+#saver .verse .text { font-size: 28px; font-weight: 500; line-height: 1.15; max-height: 129px; overflow: hidden; color: rgba(255, 255, 255, 0.92); }
+#saver .verse .copy { margin-top: 12px; font-size: 17px; line-height: 1.15; max-height: 40px; overflow: hidden; color: rgba(255, 255, 255, 0.55); }
+
 /* MARK: - Sheets over the home screen: All Apps, Settings, Shelf */
 
 .sheet {

@@ -12,7 +12,8 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 GENERIC = {'tmdbKey': '', 'tmdbRegion': '', 'latitude': '', 'longitude': '', 'city': '', 'language': 'auto',
-           'currency': '', 'temperature': 'auto', 'showCrypto': True, 'hideAnimation': False}
+           'currency': '', 'temperature': 'auto', 'showCrypto': True, 'hideAnimation': False,
+           'votdUrl': '', 'verse': 'off', 'verseBackground': 'calm', 'palette': 'graphite'}
 
 
 def config_from_args(args):
@@ -55,6 +56,10 @@ def read_config(path):
         'temperature': values.get('temperature', 'auto') or 'auto',
         'showCrypto': values.get('show_crypto', 'true').lower() != 'false',
         'hideAnimation': values.get('hide_animation', 'false').lower() == 'true',
+        'votdUrl': values.get('votd_url', ''),
+        'verse': values.get('verse', 'off') or 'off',
+        'verseBackground': values.get('verse_background', 'calm') or 'calm',
+        'palette': values.get('palette', 'graphite') or 'graphite',
     }
 
 
@@ -88,6 +93,8 @@ def files(config, made_by):
         if name.endswith('.png') or name.startswith('LICENSE'):
             with open(os.path.join(symbols, name), 'rb') as f:
                 out['symbols/' + name] = f.read()
+    with open(os.path.join(ROOT, 'app', 'assets', 'votd-sample.json'), 'rb') as f:
+        out['votd-sample.json'] = f.read()   # the sample verse (votd_url=asset:votd-sample.json)
     for name in ('InterVariable.ttf', 'OFL.txt'):
         with open(os.path.join(ROOT, 'app', 'assets', 'fonts', name), 'rb') as f:
             out['fonts/' + name] = f.read()

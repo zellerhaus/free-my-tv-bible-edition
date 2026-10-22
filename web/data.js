@@ -50,6 +50,9 @@ var Prefs = (function () {
     quotes: function () { return pick('quotes', CONFIG.showCrypto !== false); },
     coin: function (i) { var c = pick('coins', null); return c ? c[i] !== false : true; },
     shelf: function () { return pick('shelf', null); },
+    verse: function () { return pick('verse', CONFIG.verse || 'off'); },
+    verseBackground: function () { return pick('verseBackground', CONFIG.verseBackground || 'calm'); },
+    palette: function () { return pick('palette', CONFIG.palette || 'graphite'); },
     set: function (name, value) { v[name] = value; save(); this.version++; },
     setCoin: function (i, on) {
       var c = (pick('coins', null) || [true, true, true, true]).slice();
@@ -591,5 +594,113 @@ var Data = (function () {
       return 'rainy';
     },
     coinName: function (i) { return i === 3 ? tr('Dólar', 'Dollar', 'Dólar') : ['Bitcoin', 'Ethereum', 'Solana'][i]; }
+  };
+})();
+
+/** The color palettes (the Android app's Palette.java): inks and backgrounds, by day and by night. */
+var Palette = (function () {
+  'use strict';
+  // key, day: ink, dim, faint, bg top, bg bottom, glass; night: bright, dim, bg top, bg bottom, glass
+  var ALL = [
+    ['graphite', '#1D1D1F', '#6E6E73', '#8E8E93', '#F5F5F7', '#E2E2E7', '#EBEBF0', '#F5F5F7', '#98989D', '#1C1C1E', '#0B0B0D', '#141416'],
+    ['parchment', '#2B2318', '#7A6A52', '#9C8B70', '#F7F1E5', '#E9DEC7', '#EFE7D6', '#F4ECDD', '#B3A58E', '#231C14', '#0F0B07', '#1B1510'],
+    ['desert', '#3A2418', '#8A5E46', '#A8826C', '#FBF0E4', '#F0D5BE', '#F5E4D3', '#FBEFE3', '#C69D85', '#2B1A12', '#120A06', '#1F130D'],
+    ['midnight', '#161B2E', '#5B6482', '#7E869F', '#EEF1F8', '#D9DFEC', '#E6EAF3', '#EEF1F8', '#9AA3C2', '#0F1428', '#05070F', '#0B0F1E'],
+    ['sage', '#1E2A1F', '#5F6E5F', '#83907F', '#F1F5EF', '#DAE4D6', '#E9EFE5', '#EEF4EC', '#97A595', '#141C15', '#070B08', '#0F160F']
+  ];
+  function of(key) {
+    for (var i = 0; i < ALL.length; i++) if (ALL[i][0] === key) return pack(ALL[i]);
+    return pack(ALL[0]);
+  }
+  function pack(a) {
+    return {key: a[0], ink: a[1], dim: a[2], faint: a[3], lightTop: a[4], lightBottom: a[5], glassLight: a[6],
+      bright: a[7], dimDark: a[8], darkTop: a[9], darkBottom: a[10], glassDark: a[11]};
+  }
+  return {
+    keys: ALL.map(function (a) { return a[0]; }),
+    of: of,
+    label: function (key) {
+      return key === 'parchment' ? tr('Pergaminho', 'Parchment', 'Pergamino') : key === 'desert' ? tr('Deserto', 'Desert', 'Desierto')
+          : key === 'midnight' ? tr('Meia-noite', 'Midnight', 'Medianoche') : key === 'sage' ? tr('Sálvia', 'Sage', 'Salvia') : tr('Grafite', 'Graphite', 'Grafito');
+    }
+  };
+})();
+
+/**
+ * The Verse of the Day (the Android app's Verse.java): one JSON document a day from the feed in config.properties
+ * (votd_url), which a server fills from YouVersion and keeps the keys. Fetched once a day and again after midnight;
+ * yesterday's stays until today's arrives. "asset:<file>" reads the bundled sample.
+ */
+var Verse = (function () {
+  'use strict';
+  var KEY = 'fmtv.verse';
+  var url = (CONFIG.votdUrl || '').trim();
+  var day = null, fetchedAt = 0, fetching = false, failedAt = 0, triedAt = 0, listeners = [];
+  try { var c = JSON.parse(localStorage.getItem(KEY)); if (c && c.day) { day = c.day; fetchedAt = c.at || 0; } } catch (e) {}
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function today() { var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function clean(s) { return String(s || '').replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, ''); }
+
+  /** The verse must come with its reference, its text and the version's copyright line, or it isn't shown. */
+  function parse(o) {
+    var d = {date: clean(o.date), reference: clean(o.reference), text: clean(o.text), bible: clean(o.bible),
+      copyright: clean(o.copyright), context: clean(o.context)};
+    if (!d.reference || !d.text || !d.copyright) return null;
+    if (!d.date) d.date = today();
+    return d;
+  }
+
+  function mode() { var m = String(Prefs.verse() || 'off').toLowerCase(); return m === 'tab' || m === 'card' ? m : 'off'; }
+  function configured() { return !!url; }
+  function on() { return configured() && mode() !== 'off'; }
+
+  function refresh() {
+    if (!on() || fetching) return;
+    var now = Date.now();
+    if (day && day.date === today()) return;
+    if (failedAt && now >= failedAt && now - failedAt < 10 * 60000) return;
+    if (day && triedAt && now >= triedAt && now - triedAt < 60 * 60000) return;   // the feed still had yesterday's
+    fetching = true;
+    var x = new XMLHttpRequest(), over = false;
+    x.open('GET', url.indexOf('asset:') === 0 ? url.slice(6) : url, true);
+    x.timeout = 10000;
+    try { x.setRequestHeader('Accept', 'application/json'); } catch (e) {}
+    x.onreadystatechange = function () {
+      if (x.readyState !== 4 || over) return;
+      over = true;
+      fetching = false;
+      var ok = x.status === 200 || (x.status === 0 && x.responseText);   // 0: a file inside the app
+      var d = null;
+      if (ok) { try { d = parse(JSON.parse(x.responseText)); } catch (e) {} }
+      if (!d) { failedAt = Date.now(); return; }
+      triedAt = Date.now();
+      if (!day || day.date !== d.date || day.text !== d.text) {
+        day = d;
+        fetchedAt = Date.now();
+        try { localStorage.setItem(KEY, JSON.stringify({day: day, at: fetchedAt})); } catch (e) {}
+        for (var i = 0; i < listeners.length; i++) listeners[i]();
+      }
+    };
+    x.ontimeout = x.onerror = function () { if (!over) { over = true; fetching = false; failedAt = Date.now(); } };
+    x.send();
+  }
+
+  return {
+    configured: configured,
+    on: on,
+    tab: function () { return configured() && mode() === 'tab'; },
+    card: function () { return configured() && mode() === 'card'; },
+    mode: mode,
+    get day() { return day; },
+    get fetchedAt() { return fetchedAt; },
+    refresh: refresh,
+    onChange: function (fn) { listeners.push(fn); },
+    reference: function (d) { return d.bible ? d.reference + ' · ' + d.bible : d.reference; },
+    credit: function () {
+      return tr('Versículo do dia pela YouVersion Platform · Contexto por Psalmlog',
+          'Verse of the Day from the YouVersion Platform · Context by Psalmlog',
+          'Versículo del día de YouVersion Platform · Contexto por Psalmlog');
+    }
   };
 })();
